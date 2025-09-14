@@ -20,7 +20,7 @@ Output
 raw_folder = "data/raw"
 processed_folder = "data/processed"
 
-# Load the core CSV files we need for a first RAG pass
+# Loading the core CSV files we need for a first RAG pass
 
 
 
@@ -35,18 +35,18 @@ constructors = pd.read_csv(os.path.join(raw_folder, "constructors.csv"))
 # circuits: circuit name, location, country
 circuits = pd.read_csv(os.path.join(raw_folder, "circuits.csv"))
 
-# Join all tables into a single frame of race results with rich context
-# We start from results, then add race info, driver info, constructor info, and circuit info
-# suffixes are applied only when column names collide
-# for example, both races and circuits have a column called name
-# after merges we will have name from races, and name_circuit from circuits
+# Joining all tables into a single DataFrame of race results with rich context
+# Starting from results, then adding race info, driver info, constructor info, and circuit info
+# Applying suffixes only when column names collide
+# For example, both races and circuits have a column called 'name'
+# After merging we will have 'name' from races, and 'name_circuit' from circuits
 results = results.merge(races, on="raceId", how="left", suffixes=("", "_race"))
 results = results.merge(drivers, on="driverId", how="left", suffixes=("", "_driver"))
 results = results.merge(constructors, on="constructorId", how="left", suffixes=("", "_constructor"))
 results = results.merge(circuits, on="circuitId", how="left", suffixes=("", "_circuit"))
 
-# Build a short narrative per driver per race
-# We keep it concise and structured so sentence embeddings work well
+# Building a short narrative per driver per race
+# We are keeping it concise and structured so sentence embeddings work well
 documents = []
 for _, row in results.iterrows():
     # race name comes from races as name
@@ -66,7 +66,7 @@ for _, row in results.iterrows():
         }
     )
 
-# Save the processed dataset that will be embedded in the next step
+# Saving the processed dataset that will be embedded in the next step
 processed_df = pd.DataFrame(documents)
 os.makedirs(processed_folder, exist_ok=True)
 processed_df.to_csv(os.path.join(processed_folder, "processed_races.csv"), index=False)
