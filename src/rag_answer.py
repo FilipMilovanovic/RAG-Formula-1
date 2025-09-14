@@ -24,6 +24,11 @@ embedder = SentenceTransformer(EMBED_MODEL_NAME)
 
 # Helpers 
 def load_data_and_index():
+    """
+    Loads the processed Formula 1 dataset and the FAISS index.
+    Raises FileNotFoundError if preprocessing or embeddings have not been generated yet.
+    Returns the dataset DataFrame and the FAISS index object.
+    """
     if not os.path.exists(PROCESSED_PATH):
         raise FileNotFoundError(
             f"Missing {PROCESSED_PATH}. Run src/preprocess_data.py first."
@@ -38,12 +43,24 @@ def load_data_and_index():
 
 
 def embed_query(query: str) -> np.ndarray:
+    """
+    Converts a user query into an embedding vector using SentenceTransformers.
+    The vector is cast to float32 and L2-normalized for cosine similarity search.
+    Returns a numpy array shaped (1, embedding_dim).
+    """
     vec = embedder.encode([query])
     vec = np.asarray(vec, dtype = "float32")
-    faiss.normalize_L2(vec)  #normalizing a query vector for cosine search
+    faiss.normalize_L2(vec)  
     return vec
 
 def retrieve_top_k(df: pd.DataFrame, index: faiss.Index, query: str, k: int = 5):
+    """
+    Searches the FAISS index with the query embedding and retrieves the top-k results.
+    Returns a list of dictionaries with: {idx, score, text}.
+    idx - row index in the dataset
+    score - similarity score from FAISS (higher = closer)
+    text - the retrieved document string
+    """
     q = embed_query(query)
     D, I = index.search(q, k)
     hits = []
@@ -69,8 +86,8 @@ def maybe_prioritize_winner(hits, query_lower: str):
 
 def trim_contexts(contexts: list[str], max_chars: int = 2200) -> list[str]:
     """
-    Keep adding snippets until we hit a soft character budget.
-    Helps local models keep prompt small & fast.
+    Ensures the final prompt stays small enough for local LLMs by 
+    trimming the list of retrieved context snippets
     """
     out, total = [], 0
     for c in contexts:
@@ -83,7 +100,7 @@ def trim_contexts(contexts: list[str], max_chars: int = 2200) -> list[str]:
 
 def build_user_prompt(question: str, contexts: list[str]) -> str:
     """
-    LM Studio's Mistral template supports only `user` and `assistant`.
+    LM Studio's Mistral template supports only 'user' and 'assistant'.
     We put instructions + context + question in a single user message.
     """
     bullet_context = "\n".join(f"- {c}" for c in contexts)
@@ -101,6 +118,10 @@ def build_user_prompt(question: str, contexts: list[str]) -> str:
 
 
 def generate_answer(question: str, contexts: list[str], temperature: float = 0.0, max_tokens: int = 256) -> str:
+    """
+    Sends the prompt to the LLM via LM Studio API and generates an answer.
+    Returns the model's answer as a string.
+    """
     prompt = build_user_prompt(question, contexts)
     resp = client.chat.completions.create(
         model=MODEL_NAME,
