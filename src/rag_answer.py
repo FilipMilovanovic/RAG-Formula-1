@@ -55,17 +55,15 @@ def retrieve_top_k(df: pd.DataFrame, index: faiss.Index, query: str, k: int = 5)
 
 def maybe_prioritize_winner(hits, query_lower: str):
     """
-    If the question asks 'who won', keep only entries with 'Finished position: 1'.
-    If none found, fall back to original hits.
+    If the question asks 'who won', always return only entries
+    with 'Finished position: 1' when they exist.
     """
     if "who won" in query_lower:
-        winners = []
-        for h in hits:
-            t = h["text"]
-            if "Finished position: 1" in t or "Finished position: 1," in t:
-                winners.append(h)
-        return winners if winners else hits
+        winners = [h for h in hits if "Finished position: 1" in h["text"]]
+        if winners:
+            return winners 
     return hits
+
 
 
 
