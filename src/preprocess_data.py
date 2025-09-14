@@ -35,11 +35,8 @@ constructors = pd.read_csv(os.path.join(raw_folder, "constructors.csv"))
 # circuits: circuit name, location, country
 circuits = pd.read_csv(os.path.join(raw_folder, "circuits.csv"))
 
-# Joining all tables into a single DataFrame of race results with rich context
-# Starting from results, then adding race info, driver info, constructor info, and circuit info
+# Merging all tables into one DataFrame with detailed race results
 # Applying suffixes only when column names collide
-# For example, both races and circuits have a column called 'name'
-# After merging we will have 'name' from races, and 'name_circuit' from circuits
 results = results.merge(races, on="raceId", how="left", suffixes=("", "_race"))
 results = results.merge(drivers, on="driverId", how="left", suffixes=("", "_driver"))
 results = results.merge(constructors, on="constructorId", how="left", suffixes=("", "_constructor"))

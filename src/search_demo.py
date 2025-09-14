@@ -4,28 +4,31 @@ import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
 
+
+"""
+Simple demo script for testing FAISS retrieval.
+Loads the processed dataset and FAISS index, embeds an example query
+and prints the top retrieved results with similarity scores.
+"""
+
 # Paths to processed data and the FAISS index
 processed_folder = "data/processed"
 models_folder = "models"
 
-# Load the processed dataset with race, driver, and constructor text
+# Loading processed dataset and FAISS index
 df = pd.read_csv(os.path.join(processed_folder, "processed_races.csv"))
-
-# Load the pre-built FAISS index
 index = faiss.read_index(os.path.join(models_folder, "f1_faiss.index"))
 
-# Load the same embedding model used during indexing
+# Loading the same embedding model used during indexing
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Example query to test the search
 query = "Who won the 2008 Australian Grand Prix?"
 print(f"Query: {query}")
 
-# Convert the query into an embedding vector
+# Embedding the query and searching the closest five FAISS indexes
 query_embedding = model.encode([query])
 query_embedding = np.array(query_embedding).astype("float32")
-
-# Search the FAISS index and return the top 5 closest matches
 D, I = index.search(query_embedding, k=5)
 
 # Print the results with their similarity scores
