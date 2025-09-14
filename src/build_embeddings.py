@@ -35,9 +35,11 @@ embeddings = model.encode(df["text"].tolist(), show_progress_bar=True)
 # Convert to float32 as required by FAISS
 embeddings = np.array(embeddings).astype("float32")
 
-# Build a simple FAISS index with L2 (Euclidean) distance
-# Note: if we normalize vectors first, L2 ranking becomes equivalent to cosine similarity
-index = faiss.IndexFlatL2(embeddings.shape[1])
+# Normalizing vectors 
+faiss.normalize_L2(embeddings)
+# Build a simple FAISS index with Innner Product for cosine similarity
+dim = embeddings.shape[1]
+index = faiss.IndexFlatIP(dim)
 index.add(embeddings)
 
 # Save the FAISS index to disk so we can reload it later for search
