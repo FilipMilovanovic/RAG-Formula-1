@@ -7,6 +7,17 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from sentence_transformers import SentenceTransformer
 
+"""
+RAG pipeline for Formula 1 questions.
+
+Loads the processed dataset and FAISS index, retrieves the most relevant
+snippets for a user query and uses a local LLM via LM Studio to generate
+a concise answer.
+
+Run from the command line:
+    python src/rag_answer.py --question "Who won the 2022 British Grand Prix?"
+"""
+
 # Setup and config
 load_dotenv()
 
@@ -41,7 +52,6 @@ def load_data_and_index():
     index = faiss.read_index(INDEX_PATH)
     return df, index
 
-
 def embed_query(query: str) -> np.ndarray:
     """
     Converts a user query into an embedding vector using SentenceTransformers.
@@ -69,7 +79,6 @@ def retrieve_top_k(df: pd.DataFrame, index: faiss.Index, query: str, k: int = 5)
             hits.append({"idx": int(idx), "score": float(score), "text": df.iloc[idx]["text"]})
     return hits
 
-
 def maybe_prioritize_winner(hits, query_lower: str):
     """
     If the question asks 'who won', always return only entries
@@ -80,9 +89,6 @@ def maybe_prioritize_winner(hits, query_lower: str):
         if winners:
             return winners 
     return hits
-
-
-
 
 def trim_contexts(contexts: list[str], max_chars: int = 2200) -> list[str]:
     """
@@ -96,7 +102,6 @@ def trim_contexts(contexts: list[str], max_chars: int = 2200) -> list[str]:
         out.append(c)
         total += len(c) + 4
     return out
-
 
 def build_user_prompt(question: str, contexts: list[str]) -> str:
     """
@@ -116,7 +121,6 @@ def build_user_prompt(question: str, contexts: list[str]) -> str:
         "Answer:"
     )
 
-
 def generate_answer(question: str, contexts: list[str], temperature: float = 0.0, max_tokens: int = 256) -> str:
     """
     Sends the prompt to the LLM via LM Studio API and generates an answer.
@@ -130,7 +134,6 @@ def generate_answer(question: str, contexts: list[str], temperature: float = 0.0
         max_tokens=max_tokens,
     )
     return resp.choices[0].message.content.strip()
-
 
 # CLI 
 def main():

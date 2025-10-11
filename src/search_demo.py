@@ -4,7 +4,6 @@ import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
 
-
 """
 Simple demo script for testing FAISS retrieval.
 Loads the processed dataset and FAISS index, embeds an example query
