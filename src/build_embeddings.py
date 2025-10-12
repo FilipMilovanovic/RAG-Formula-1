@@ -1,3 +1,9 @@
+import pandas as pd
+import os
+from sentence_transformers import SentenceTransformer
+import faiss
+import numpy as np
+
 """
 Builds sentence embeddings for the processed Formula 1 dataset
 and store them in a FAISS index for fast similarity search.
@@ -8,12 +14,6 @@ Input
 Output
   models/f1_faiss.index 
 """
-
-import pandas as pd
-import os
-from sentence_transformers import SentenceTransformer
-import faiss
-import numpy as np
 
 # Paths for processed data and model outputs
 processed_folder = "data/processed"
